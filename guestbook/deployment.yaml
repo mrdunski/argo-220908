@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: guestbook-ui
+  labels:
+    app: guestbook
+spec:
+  replicas: 2
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: guestbook-deployment
+  template:
+    metadata:
+      labels:
+        app: guestbook-deployment
+    spec:
+      initContainers:
+        - name: init-container
+          image: ubuntu
+          command:
+            - echo
+            - gotowy
+      containers:
+        - name: guestbook-ui
+          image: gcr.io/heptio-images/ks-guestbook-demo:0.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              port: 80
+              path: /
+          readinessProbe:
+            httpGet:
+              port: 80
+              path: /
+      restartPolicy: Always
